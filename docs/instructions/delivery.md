@@ -21,7 +21,7 @@
 
 | Requisito | Artefato oficial | Implementação | Teste | Evidência | Status |
 |-----------|------------------|---------------|-------|-----------|--------|
-| Ambiente pronto (backend, Postgres, Mailpit) + Git Flow (`dev`) + fundação de IA | `compose.yaml`, branches `dev`/`feature/phase-03-videos` | — | Suíte base verde | — | `pendente` |
+| Ambiente pronto (backend, Postgres, Mailpit) + Git Flow (`dev`) + fundação de IA | `compose.yaml`, branches `dev`/`feature/phase-03-videos` | Stack no ar; `.env` criado; migrations aplicadas | Base verde: unit+integração 144/144, e2e 52/52 | `docker compose ps`; logs `/tmp/baseline2.log`, `/tmp/e2e.log` | `entregue` |
 
 ---
 
