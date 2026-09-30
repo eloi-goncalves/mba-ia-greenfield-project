@@ -1,7 +1,7 @@
 # phase-03-videos — Progress
 
 **Status:** in_progress
-**SIs:** 2/8 completed
+**SIs:** 3/8 completed
 
 ### SI-03.1 — Dependências, Config Namespaces e Infra no Docker Compose
 - **Status:** completed
@@ -22,9 +22,13 @@
   - Métodos: createMultipartUpload, presignUploadPart, completeMultipartUpload, abortMultipartUpload, presignGet (Range/Content-Disposition), putObject, headObject, sourceKey/thumbnailKey.
 
 ### SI-03.3 — Entidade Video e Migration
-- **Status:** pending
-- **Tests:** —
-- **Observations:** none
+- **Status:** completed
+- **Tests:** 4/4 integração (video.entity.integration-spec): default `draft`, unicidade de `public_id`, round-trip bigint/jsonb, FK inválida rejeitada. Suíte completa 156/156.
+- **Observations:**
+  - Entidade `Video` (enum `VideoStatus`, FK `channel_id`→channels, `public_id` único, bigint `size_bytes` com transformer p/ number, jsonb `metadata`). Migration `CreateVideos` gerada e aplicada.
+  - Removido `@Index({ unique: true })` redundante em `public_id` (a coluna `unique: true` já cria a constraint) e regenerada a migration limpa.
+  - Corrigida fragilidade pré-existente do `migrations.integration-spec`: `beforeAll` agora dropa `verification_tokens_type_enum` (idempotência contra enum residual).
+  - `beforeEach` do teste de entidade reusa `cleanAllTables` (ordem correta de FKs de token) + `DELETE videos`.
 
 ### SI-03.4 — Videos Module e Setup da Fila (BullMQ)
 - **Status:** pending
