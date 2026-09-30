@@ -27,15 +27,16 @@
 
 ## 2. Decisões técnicas (research)
 
-| Requisito | Artefato oficial | Implementação | Teste | Evidência | Status |
-|-----------|------------------|---------------|-------|-----------|--------|
-| Tecnologia de fila (TBD) | `docs/decisions/technical-decisions-phase-03-videos.md` | — | — | — | `pendente` |
-| Estratégia de upload de 10GB (sem travar) | idem | — | — | — | `pendente` |
-| Worker (processo/container) + FFmpeg/ffprobe | idem | — | — | — | `pendente` |
-| Estratégia de URL única | idem | — | — | — | `pendente` |
-| Estratégia de streaming (range/206) | idem | — | — | — | `pendente` |
-| Ciclo de status + falha no processamento | idem | — | — | — | `pendente` |
-| Uso do object storage (S3/MinIO: buckets/chaves, presigned) | idem | — | — | — | `pendente` |
+| Requisito | Artefato oficial | Decisão | Teste | Evidência | Status |
+|-----------|------------------|---------|-------|-----------|--------|
+| Tecnologia de fila (TBD) | `docs/decisions/technical-decisions-phase-03-videos.md` | TD-01: BullMQ (Redis) | — | confirmado com usuário | `entregue` |
+| Estratégia de upload de 10GB (sem travar) | idem | TD-02: Presigned Multipart direto ao storage | — | context7 AWS SDK v3 | `entregue` |
+| Worker (processo/container) + FFmpeg/ffprobe | idem | TD-04: container separado + `child_process` | — | diagrama de arquitetura | `entregue` |
+| Estratégia de URL única | idem | TD-07: `public_id` curto aleatório | — | — | `entregue` |
+| Estratégia de streaming (range/206) | idem | TD-06: presigned GET direto do storage | — | context7 AWS SDK v3 | `entregue` |
+| Ciclo de status + falha no processamento | idem | TD-08: `draft → processing → ready\|failed` | — | — | `entregue` |
+| Geração de thumbnail | idem | TD-05: frame único em offset relativo | — | — | `entregue` |
+| Uso do object storage (S3/MinIO: buckets/chaves, presigned) | idem | TD-03: AWS SDK v3, chaves por `videoId` | — | context7 AWS SDK v3 | `entregue` |
 
 ---
 

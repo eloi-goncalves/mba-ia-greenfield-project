@@ -8,6 +8,27 @@
 
 ---
 
+## 2026-09-30 — Execução do meta-plano #01 (Research — decisões técnicas)
+
+- **Fase/Etapa:** Research (`execution_plan_phase#01-research.md`), skill `research`.
+- **Entendimento:** Fechar as decisões técnicas em aberto da Fase 03 no formato dos documentos de decisão existentes, alimentando o planejamento.
+- **Objetivo:** Produzir `docs/decisions/technical-decisions-phase-03-videos.md` com as decisões justificadas.
+- **Execução:**
+  - Leitura da skill `research`, do escopo da Fase 03 (`project-plan.md`, `readme.md`) e do diagrama de arquitetura (frontend faz streaming **direto do storage** → aponta para presigned URLs).
+  - Consulta **context7**: `/nestjs/bull` (BullMQ: `@Processor`/`WorkerHost`, `@OnQueueFailed`, `attempts`/`backoff`), `/aws/aws-sdk-js-v3` (presigned GET com Range + `ResponseContentDisposition`, `lib-storage`/multipart, `endpoint` custom p/ MinIO), e comparação com `pg-boss`.
+  - **Decisão de fila confirmada com o usuário** (AskUserQuestion): BullMQ (Redis).
+- **Arquivos criados:** `docs/decisions/technical-decisions-phase-03-videos.md` (8 TDs + Decisions Summary).
+- **Decisões (resumo):** TD-01 BullMQ/Redis; TD-02 presigned multipart direto ao storage; TD-03 AWS SDK v3 + chaves por `videoId`; TD-04 worker em container separado + `child_process` (ffprobe/ffmpeg); TD-05 thumbnail em frame único (offset relativo); TD-06 streaming/download por presigned GET direto do storage (range/206, `Content-Disposition`); TD-07 `public_id` curto aleatório (atenção: `nanoid` v5 é ESM — usar v3 CJS ou base62 com `crypto`); TD-08 ciclo `draft → processing → ready|failed` com retry/backoff.
+- **Testes:** N/A (etapa de decisão; nenhum código de produção).
+- **Validação:** Capability gate OK (cada TD mapeia um bullet da Fase 03; todas as 9 capabilities cobertas); object storage tratado como dado (só o "como usar"); frontend com justificativa de fora de escopo; formato coerente com `technical-decisions-phase-02-auth.md`.
+- **Commits:** `docs(research): decisões técnicas da Fase 03` (branch `feature/phase-03-videos`).
+- **Evidências:** documento versionado; referências context7 citadas nas TDs.
+- **Problemas/Bloqueios:** Nenhum. Atenção registrada: compatibilidade CJS do `nanoid` (a fixar em `plan-resolve`/`library-refs.md`).
+- **Próximos passos:** Após confirmação, iniciar `execution_plan_phase#02-planejamento.md` (pipeline: context → validate → resolve → build).
+- **Status:** `executada`
+
+---
+
 ## 2026-09-30 — Execução do meta-plano #00 (Setup do ambiente)
 
 - **Fase/Etapa:** Pré-condição / Setup (`execution_plan_phase#00-setup.md`).
