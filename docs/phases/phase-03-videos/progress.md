@@ -1,7 +1,7 @@
 # phase-03-videos — Progress
 
 **Status:** in_progress
-**SIs:** 1/8 completed
+**SIs:** 2/8 completed
 
 ### SI-03.1 — Dependências, Config Namespaces e Infra no Docker Compose
 - **Status:** completed
@@ -14,9 +14,12 @@
   - Testes rodam dentro do container com `--runInBand --forceExit` (evita órfãos por open handles). `tsc --noEmit` roda no host.
 
 ### SI-03.2 — Storage Service (S3/MinIO)
-- **Status:** pending
-- **Tests:** —
-- **Observations:** none
+- **Status:** completed
+- **Tests:** 4/4 integração (storage.service.integration-spec) contra MinIO real: multipart round-trip, `206` com Range, abort, presignGet com Content-Disposition, putObject/headObject
+- **Observations:**
+  - `StorageService` (AWS SDK v3, `forcePathStyle`) com `onModuleInit` que garante o bucket (`ensureBucket` via HeadBucket→CreateBucket) — resolve PEND-03 (sem depender do image `minio/mc`).
+  - `StorageModule` importado no `AppModule` para provisionar o bucket no boot.
+  - Métodos: createMultipartUpload, presignUploadPart, completeMultipartUpload, abortMultipartUpload, presignGet (Range/Content-Disposition), putObject, headObject, sourceKey/thumbnailKey.
 
 ### SI-03.3 — Entidade Video e Migration
 - **Status:** pending
