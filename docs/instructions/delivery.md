@@ -68,7 +68,7 @@
 | Download do vídeo pelo usuário | — | — | — | `pendente` |
 | Ciclo de status (rascunho → processando → pronto/erro) no banco | — | — | — | `pendente` |
 | Migration da tabela de vídeos (entidade ligada ao canal) | — | — | — | `pendente` |
-| Infra no Compose (storage + fila + worker) | `nestjs-project/compose.yaml` | — | `docker compose ps` | `pendente` |
+| Infra no Compose (storage + fila + worker) | `nestjs-project/compose.yaml` | SI-03.1: redis/minio/video-worker | regressão verde | `docker compose ps` | `em-andamento` |
 | Progresso por SI | `docs/phases/phase-03-videos/progress.md` | — | — | `pendente` |
 
 ---

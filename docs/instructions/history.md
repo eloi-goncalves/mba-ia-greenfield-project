@@ -8,6 +8,24 @@
 
 ---
 
+## 2026-09-30 — Execução do meta-plano #03 — SI-03.1 (deps + config + infra Compose)
+
+- **Fase/Etapa:** Implementação (`execution_plan_phase#03-implementacao.md`), skill `implement` — SI-03.1.
+- **Execução:**
+  - Deps instaladas: `@nestjs/bullmq@^11.0.5`, `bullmq@^5.81.5`, `@aws-sdk/client-s3@^3.1144`, `@aws-sdk/s3-request-presigner@^3.1144`, `@aws-sdk/lib-storage@^3.1144`, `nanoid@^3.3.19`.
+  - Config namespaces `storage`/`queue`/`upload` + carregados no `AppModule`; Joi + `.env.example` + `.env` estendidos.
+  - Compose: `redis` (7-alpine, healthy), `minio` (+volume), `video-worker` (`Dockerfile.worker` com ffmpeg 5.1.9). Bucket provisionado em código (o image `minio/mc` teve acesso negado no registry — adaptação).
+- **Testes:** config specs 4/4; regressão completa **148/148** unit+integração (25 suítes) + **52/52** e2e. `tsc --noEmit` limpo (host).
+- **Análise do "travamento" (resolvido):**
+  - **Causa 1 — processos jest órfãos:** rodadas em background com `| tail` sofriam timeout e continuavam vivas (Jest "did not exit" por open handles de BullMQ/Redis/TypeORM), acumulando 3 `jest --runInBand` concorrentes contra o mesmo Postgres → falha do `migrations.integration-spec`. **Correção:** `pkill -9 -f jest` + passar a usar `--forceExit` e redirecionar para log (sem `| tail`). Registrado em `/memories/repo/mba-ia-greenfield-testing.md`.
+  - **Causa 2 — regressão real:** novas vars Joi obrigatórias (`STORAGE_ACCESS_KEY`/`SECRET_KEY`) quebraram `env.validation.integration-spec.ts`. **Correção:** fixture `requiredEnv` atualizado com as credenciais de storage.
+- **Pendências (a verificar no fechamento):**
+  - **[PEND-03]** Bucket provisionado via código (StorageService no boot, SI-03.2) por indisponibilidade do image `minio/mc` neste ambiente — confirmar que a criação idempotente do bucket funciona no boot do worker/API.
+- **Commits:** `feat(videos): SI-03.1 — deps, config namespaces e infra (redis/minio/worker) no Compose` (branch `feature/phase-03-videos`).
+- **Status:** `executada`
+
+---
+
 ## 2026-09-30 — Execução do meta-plano #02 (Planejamento — pipeline)
 
 - **Fase/Etapa:** Planejamento (`execution_plan_phase#02-planejamento.md`), pipeline `plan-context → plan-validate → plan-resolve → plan-validate → plan-build`.
