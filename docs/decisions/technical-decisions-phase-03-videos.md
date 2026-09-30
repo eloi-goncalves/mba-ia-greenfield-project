@@ -214,6 +214,8 @@ _Subprojects in scope:_
 
 **Decision:** A (`public_id` curto aleatório, coluna única, retry em colisão)
 
+**Libraries:** `nanoid@^3` (CommonJS — a v5 é ESM-only e quebraria o build CJS do NestJS). Fixado em `library-refs.md` (resolve OQ-1).
+
 ---
 
 ## TD-08: Ciclo de Status do Vídeo e Tratamento de Falha no Processamento

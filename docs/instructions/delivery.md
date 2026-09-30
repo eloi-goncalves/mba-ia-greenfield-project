@@ -44,10 +44,10 @@
 
 | Requisito | Artefato oficial | Status | Evidência |
 |-----------|------------------|--------|-----------|
-| Contexto consolidado | `docs/phases/phase-03-videos/context.md` | `pendente` | — |
-| Validação (clean) | `docs/phases/phase-03-videos/validation.md` | `pendente` | frontmatter `status: clean` |
-| Libs fixadas (context7) | `docs/phases/phase-03-videos/library-refs.md` | `pendente` | — |
-| Plano executável (SIs + Tech Specs + Dependency Map + Deliverables) | `docs/phases/phase-03-videos/phase-03-videos.md` | `pendente` | — |
+| Contexto consolidado | `docs/phases/phase-03-videos/context.md` | `entregue` | 9 capabilities → 8 TDs (Capability Coverage) |
+| Validação (clean) | `docs/phases/phase-03-videos/validation.md` | `entregue` | frontmatter `status: clean`, `issue_count: 0` |
+| Libs fixadas (context7) | `docs/phases/phase-03-videos/library-refs.md` | `entregue` | BullMQ/AWS SDK/nanoid@^3 CJS + infra redis/minio |
+| Plano executável (SIs + Tech Specs + Dependency Map + Deliverables) | `docs/phases/phase-03-videos/phase-03-videos.md` | `entregue` | 8 SIs + Data Model/API/Authz/Errors/Events + Dependency Map |
 
 ---
 
