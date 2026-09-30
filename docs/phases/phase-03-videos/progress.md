@@ -1,7 +1,7 @@
 # phase-03-videos — Progress
 
 **Status:** in_progress
-**SIs:** 3/8 completed
+**SIs:** 4/8 completed
 
 ### SI-03.1 — Dependências, Config Namespaces e Infra no Docker Compose
 - **Status:** completed
@@ -31,9 +31,12 @@
   - `beforeEach` do teste de entidade reusa `cleanAllTables` (ordem correta de FKs de token) + `DELETE videos`.
 
 ### SI-03.4 — Videos Module e Setup da Fila (BullMQ)
-- **Status:** pending
-- **Tests:** —
-- **Observations:** none
+- **Status:** completed
+- **Tests:** 3/3 (videos.service.spec: enqueue com jobId idempotente; videos.module.spec: compilação com fila+storage). Suíte completa 159/159 + e2e 52/52.
+- **Observations:**
+  - `VideosModule` com `TypeOrmModule.forFeature([Video])`, `BullModule.registerQueue('video-processing')` (attempts 3, backoff exponencial 5s, removeOnComplete) e `StorageModule`.
+  - `BullModule.forRootAsync` (conexão Redis via `queueConfig`) e `VideosModule` registrados no `AppModule`.
+  - `VideosService.enqueueProcessing(videoId)` usa `jobId = videoId` (idempotência).
 
 ### SI-03.5 — Orquestração de Upload (Initiate / Complete / Abort)
 - **Status:** pending
