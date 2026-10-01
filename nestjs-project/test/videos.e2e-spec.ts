@@ -11,6 +11,7 @@ import { AuthService } from '../src/auth/auth.service';
 import { DomainExceptionFilter } from '../src/common/filters/domain-exception.filter';
 import { ValidationExceptionFilter } from '../src/common/filters/validation-exception.filter';
 import { cleanAllTables } from '../src/test/create-test-data-source';
+import { Video, VideoStatus } from '../src/videos/entities/video.entity';
 import { VIDEO_PROCESSING_QUEUE } from '../src/videos/videos.constants';
 
 const UPLOAD_MAX_BYTES = 10737418240;
@@ -156,6 +157,91 @@ describe('Videos upload (e2e)', () => {
       .expect(403)
       .expect((res) => {
         expect(res.body.error).toBe('NOT_VIDEO_OWNER');
+      });
+  });
+
+  async function createReadyVideo(
+    accessToken: string,
+  ): Promise<{ publicId: string; videoId: string; byteLength: number }> {
+    const initiate = await request(app.getHttpServer())
+      .post('/videos')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send(initiateBody)
+      .expect(201);
+
+    const body = Buffer.from('ready video streaming bytes payload');
+    const putRes = await fetch(initiate.body.parts[0].url, {
+      method: 'PUT',
+      body,
+    });
+    await request(app.getHttpServer())
+      .post(`/videos/${initiate.body.videoId}/complete`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        uploadId: initiate.body.uploadId,
+        parts: [{ partNumber: 1, etag: putRes.headers.get('etag') }],
+      })
+      .expect(200);
+
+    const repo = dataSource.getRepository(Video);
+    const video = await repo.findOneByOrFail({ id: initiate.body.videoId });
+    video.status = VideoStatus.READY;
+    video.duration_seconds = 5;
+    await repo.save(video);
+
+    return {
+      publicId: initiate.body.publicId,
+      videoId: initiate.body.videoId,
+      byteLength: body.length,
+    };
+  }
+
+  it('returns public metadata for a ready video (anonymous)', async () => {
+    const token = await login('meta@example.com');
+    const { publicId } = await createReadyVideo(token);
+
+    const res = await request(app.getHttpServer())
+      .get(`/videos/${publicId}`)
+      .expect(200);
+
+    expect(res.body.publicId).toBe(publicId);
+    expect(res.body.status).toBe('ready');
+    expect(res.body.durationSeconds).toBe(5);
+  });
+
+  it('streams via a presigned redirect that serves 206 for a Range request', async () => {
+    const token = await login('stream@example.com');
+    const { publicId, byteLength } = await createReadyVideo(token);
+
+    const res = await request(app.getHttpServer())
+      .get(`/videos/${publicId}/stream`)
+      .expect(302);
+
+    const location = res.headers.location;
+    expect(location).toContain('/videos/');
+    const ranged = await fetch(location, { headers: { Range: 'bytes=0-3' } });
+    expect(ranged.status).toBe(206);
+    expect(ranged.headers.get('content-range')).toContain(`/${byteLength}`);
+  });
+
+  it('downloads via a presigned redirect with an attachment disposition', async () => {
+    const token = await login('download@example.com');
+    const { publicId } = await createReadyVideo(token);
+
+    const res = await request(app.getHttpServer())
+      .get(`/videos/${publicId}/download`)
+      .expect(302);
+
+    const dl = await fetch(res.headers.location);
+    expect(dl.headers.get('content-disposition')).toContain('attachment');
+  });
+
+  it('returns 404 for a non-ready or unknown public id', async () => {
+    await request(app.getHttpServer())
+      .get('/videos/doesnotexist')
+      .expect(404)
+      .expect((res) => {
+        expect(res.body.error).toBe('VIDEO_NOT_FOUND');
       });
   });
 });

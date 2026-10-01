@@ -1,15 +1,18 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Param,
   ParseUUIDPipe,
   Post,
+  Redirect,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { JwtPayload } from '../auth/auth.types';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { Public } from '../auth/decorators/public.decorator';
 import { AbortUploadDto } from './dto/abort-upload.dto';
 import { CompleteUploadDto } from './dto/complete-upload.dto';
 import { InitiateUploadDto } from './dto/initiate-upload.dto';
@@ -61,5 +64,41 @@ export class VideosController {
     @Body() dto: AbortUploadDto,
   ): Promise<void> {
     return this.videosService.abortUpload(user.sub, id, dto.uploadId);
+  }
+
+  @Public()
+  @Get(':publicId')
+  @ApiOperation({
+    summary: 'Get public video metadata',
+    description: 'Returns metadata for a ready video, including a presigned thumbnail URL.',
+  })
+  getPublic(@Param('publicId') publicId: string) {
+    return this.videosService.getPublicVideo(publicId);
+  }
+
+  @Public()
+  @Get(':publicId/stream')
+  @Redirect()
+  @ApiOperation({
+    summary: 'Stream a video',
+    description:
+      'Redirects to a presigned storage URL that serves the video with HTTP Range (206) support.',
+  })
+  async stream(@Param('publicId') publicId: string) {
+    const url = await this.videosService.getStreamUrl(publicId);
+    return { url, statusCode: HttpStatus.FOUND };
+  }
+
+  @Public()
+  @Get(':publicId/download')
+  @Redirect()
+  @ApiOperation({
+    summary: 'Download a video',
+    description:
+      'Redirects to a presigned storage URL with a Content-Disposition attachment header.',
+  })
+  async download(@Param('publicId') publicId: string) {
+    const url = await this.videosService.getDownloadUrl(publicId);
+    return { url, statusCode: HttpStatus.FOUND };
   }
 }

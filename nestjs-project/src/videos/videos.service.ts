@@ -136,6 +136,49 @@ export class VideosService {
     await this.videoRepository.remove(video);
   }
 
+  async getPublicVideo(publicId: string): Promise<{
+    publicId: string;
+    title: string;
+    durationSeconds: number | null;
+    thumbnailUrl: string | null;
+    status: VideoStatus;
+  }> {
+    const video = await this.getReadyVideo(publicId);
+    const thumbnailUrl = video.thumbnail_key
+      ? await this.storageService.presignGet(video.thumbnail_key)
+      : null;
+
+    return {
+      publicId: video.public_id,
+      title: video.title,
+      durationSeconds: video.duration_seconds,
+      thumbnailUrl,
+      status: video.status,
+    };
+  }
+
+  async getStreamUrl(publicId: string): Promise<string> {
+    const video = await this.getReadyVideo(publicId);
+    return this.storageService.presignGet(video.source_key);
+  }
+
+  async getDownloadUrl(publicId: string): Promise<string> {
+    const video = await this.getReadyVideo(publicId);
+    return this.storageService.presignGet(video.source_key, {
+      responseContentDisposition: `attachment; filename="${video.public_id}.mp4"`,
+    });
+  }
+
+  private async getReadyVideo(publicId: string): Promise<Video> {
+    const video = await this.videoRepository.findOne({
+      where: { public_id: publicId },
+    });
+    if (!video || video.status !== VideoStatus.READY) {
+      throw new VideoNotFoundException();
+    }
+    return video;
+  }
+
   private async createDraftVideo(
     channelId: string,
     dto: InitiateUploadDto,

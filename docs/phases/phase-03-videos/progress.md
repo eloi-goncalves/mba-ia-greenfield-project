@@ -1,7 +1,7 @@
 # phase-03-videos — Progress
 
 **Status:** in_progress
-**SIs:** 6/8 completed
+**SIs:** 7/8 completed
 
 ### SI-03.1 — Dependências, Config Namespaces e Infra no Docker Compose
 - **Status:** completed
@@ -58,9 +58,11 @@
   - ffmpeg adicionado ao `Dockerfile.dev` para os testes exercitarem o processamento. **Nota:** worker é pausado durante a suíte para evitar corrida com os testes que enfileiram (religado no fechamento).
 
 ### SI-03.7 — Streaming e Download
-- **Status:** pending
-- **Tests:** —
-- **Observations:** none
+- **Status:** completed
+- **Tests:** videos.e2e 8/8 (metadata público, stream → 302 → `206` com Range, download → `Content-Disposition: attachment`, 404 para não-ready). Suíte completa 164/164 + e2e 60/60.
+- **Observations:**
+  - `GET /videos/:publicId` (metadata + thumbnail presigned), `GET /videos/:publicId/stream` (@Redirect 302 → presigned GET, range/206 nativo do storage), `GET /videos/:publicId/download` (302 → presigned com `responseContentDisposition`). Todos `@Public()` (acesso anônimo).
+  - Só vídeos `ready` são entregues; não-ready/inexistente → `VIDEO_NOT_FOUND` (404). Bytes nunca passam pela API.
 
 ### SI-03.8 — Ciclo de Status, Tratamento de Falha e Reprocesso
 - **Status:** pending
