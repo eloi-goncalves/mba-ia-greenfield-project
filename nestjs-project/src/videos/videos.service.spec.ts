@@ -1,6 +1,9 @@
 import { getQueueToken } from '@nestjs/bullmq';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { ChannelsService } from '../channels/channels.service';
+import uploadConfig from '../config/upload.config';
+import { StorageService } from '../storage/storage.service';
 import { Video } from './entities/video.entity';
 import { VideosService } from './videos.service';
 import {
@@ -21,6 +24,16 @@ describe('VideosService', () => {
         {
           provide: getQueueToken(VIDEO_PROCESSING_QUEUE),
           useValue: { add: queueAdd },
+        },
+        { provide: StorageService, useValue: {} },
+        { provide: ChannelsService, useValue: {} },
+        {
+          provide: uploadConfig.KEY,
+          useValue: {
+            maxBytes: 10737418240,
+            partSizeBytes: 104857600,
+            presignExpiresSeconds: 3600,
+          },
         },
       ],
     }).compile();

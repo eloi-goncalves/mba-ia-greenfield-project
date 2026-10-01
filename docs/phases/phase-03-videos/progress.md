@@ -1,7 +1,7 @@
 # phase-03-videos — Progress
 
 **Status:** in_progress
-**SIs:** 4/8 completed
+**SIs:** 5/8 completed
 
 ### SI-03.1 — Dependências, Config Namespaces e Infra no Docker Compose
 - **Status:** completed
@@ -39,9 +39,14 @@
   - `VideosService.enqueueProcessing(videoId)` usa `jobId = videoId` (idempotência).
 
 ### SI-03.5 — Orquestração de Upload (Initiate / Complete / Abort)
-- **Status:** pending
-- **Tests:** —
-- **Observations:** none
+- **Status:** completed
+- **Tests:** videos.service.integration 3/3 (initiate→draft, abort→remove, complete→processing+job); videos.e2e 4/4 (fluxo completo com PUT direto no storage, 413, 401, 403). Suíte completa 162/162 + e2e 56/56.
+- **Observations:**
+  - `POST /videos` (initiate: valida tamanho, resolve canal, gera `public_id` nanoid com retry, cria draft, multipart + presign partes), `POST /videos/:id/complete` (finaliza multipart, draft→processing, enfileira), `POST /videos/:id/abort`.
+  - `id` pré-gerado (`randomUUID`) para compor a `source_key` antes do save (uma única escrita).
+  - Exceções de domínio: VideoNotFound, NotVideoOwner, UploadTooLarge, InvalidStatusTransition, UploadNotFound.
+  - `ChannelsService.findByUserId` adicionado (domínio de canais); `VideosModule` importa `ChannelsModule`.
+  - **Fix central:** `cleanAllTables` passou a deletar `videos` (com guarda `to_regclass`) — a FK videos→channels quebrava o cleanup das demais suítes. `videos.service.spec` atualizado com as novas deps mockadas.
 
 ### SI-03.6 — Video Worker (FFmpeg): Metadados e Thumbnail
 - **Status:** pending
