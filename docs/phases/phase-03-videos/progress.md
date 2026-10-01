@@ -1,7 +1,7 @@
 # phase-03-videos — Progress
 
 **Status:** in_progress
-**SIs:** 5/8 completed
+**SIs:** 6/8 completed
 
 ### SI-03.1 — Dependências, Config Namespaces e Infra no Docker Compose
 - **Status:** completed
@@ -49,9 +49,13 @@
   - **Fix central:** `cleanAllTables` passou a deletar `videos` (com guarda `to_regclass`) — a FK videos→channels quebrava o cleanup das demais suítes. `videos.service.spec` atualizado com as novas deps mockadas.
 
 ### SI-03.6 — Video Worker (FFmpeg): Metadados e Thumbnail
-- **Status:** pending
-- **Tests:** —
-- **Observations:** none
+- **Status:** completed
+- **Tests:** video-processing.service.integration 2/2 (ffprobe extrai 320×240/duração, thumbnail gerada no storage, status→ready; erro em source ausente). Suíte completa 164/164 + e2e 56/56.
+- **Observations:**
+  - `VideoProcessingService` (download via presignGet → `ffprobe -print_format json` para duração/metadados → `ffmpeg -ss <10%> -frames:v 1` para thumbnail → putObject → status ready), com limpeza de temporários.
+  - `VideoProcessor` (@Processor/WorkerHost) delega ao service; `WorkerModule` + `WorkerAppModule` + `src/worker/main.ts` (createApplicationContext). Script `start:worker` e comando do `video-worker` no Compose = `npm run start:worker` (worker sobe e loga "consuming video-processing").
+  - TypeORM do worker declara entidades explicitamente (`[User, Channel, Video]`) — autoLoadEntities não via o `Channel` referenciado pelo `Video`.
+  - ffmpeg adicionado ao `Dockerfile.dev` para os testes exercitarem o processamento. **Nota:** worker é pausado durante a suíte para evitar corrida com os testes que enfileiram (religado no fechamento).
 
 ### SI-03.7 — Streaming e Download
 - **Status:** pending
