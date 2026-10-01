@@ -34,6 +34,10 @@ docker compose exec nestjs-api npm run start:dev
 Services:
 - `nestjs-api` — NestJS API, port `3000`
 - `db` — PostgreSQL 17, port `5432`, database `streamtube`, user/password `streamtube`
+- `mailpit` — SMTP + web UI (`1025`/`8025`) for transactional email in dev
+- `redis` — Redis 7, port `6379` — backing store for the BullMQ `video-processing` queue
+- `minio` — S3-compatible object storage (`9000` API / `9001` console) for video sources and thumbnails
+- `video-worker` — separate FFmpeg-enabled container consuming the `video-processing` queue (`npm run start:worker`)
 
 All verification and teardown commands run on the **host machine**:
 
@@ -93,6 +97,8 @@ docker compose exec nestjs-api npm run test:e2e   # already configured
 
 Parallel execution causes FK violations, deadlocks, and cross-suite contamination because suites truncate or seed shared tables concurrently.
 
+**Video worker during tests:** the `video-worker` container consumes the `video-processing` queue. Pause it while running the suite (`docker compose stop video-worker`) so it does not race with tests that enqueue jobs (status / `queue.getJob` assertions become non-deterministic otherwise). The worker's processing logic is covered by `src/worker/video-processing.service.integration-spec.ts` (invokes `process()` directly against real MinIO/DB); restart the worker afterwards for live consumption. Always run suites with `--runInBand --forceExit` (open BullMQ/Redis/TypeORM handles otherwise keep Jest alive).
+
 During active development, run only the tests related to the file being changed (`npm test -- path/to/file.spec.ts`). Before declaring a task done, run the full suite — see the global `CLAUDE.md` → "Definition of Done (Technical)".
 
 ## Long-running Processes
@@ -149,12 +155,42 @@ NestJS with standard module structure. Source lives in `src/`, compiled output i
 - Each domain feature gets its own module (e.g., `UsersModule`, `VideosModule`) registered in `AppModule`
 - Controllers handle HTTP routing; Services hold business logic; both are scoped to their module
 
+## Videos (Upload & Processing)
+
+The `VideosModule` delivers large-file upload, asynchronous processing, streaming and download. A video belongs to a **channel** (the authenticated user's channel).
+
+**Components**
+
+- `src/videos/` — `VideosController`, `VideosService`, `Video` entity (`videos` table), DTOs, queue producer.
+- `src/storage/` — `StorageService` over the AWS SDK v3 pointed at MinIO (`forcePathStyle`); presigned URLs (multipart parts, GET with Range / `Content-Disposition`), multipart orchestration, `putObject`/`headObject`. Ensures the bucket exists on boot (`onModuleInit`).
+- `src/worker/` — `VideoProcessor` (`@Processor('video-processing')`) + `VideoProcessingService` (ffprobe metadata + ffmpeg thumbnail); `WorkerAppModule` + `main.ts` run as the `video-worker` container (`npm run start:worker`).
+
+**Data model (`videos`)**: `id`, `public_id` (short unique URL id, nanoid), `channel_id` (FK), `title`, `status` (`draft → processing → ready | failed`), `source_key`, `thumbnail_key`, `duration_seconds`, `size_bytes`, `metadata` (jsonb), `error_reason`.
+
+**Upload strategy (10GB without blocking the API):** the client uploads **directly to storage** via presigned multipart URLs — bytes never pass through the API. The API only pre-registers the draft, issues presigned part URLs, and finalizes.
+
+**Endpoints**
+
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| POST | `/videos` | owner | Initiate upload — pre-register draft + presigned part URLs |
+| POST | `/videos/:id/complete` | owner | Finalize multipart, `draft → processing`, enqueue job |
+| POST | `/videos/:id/abort` | owner | Abort multipart and remove the draft |
+| POST | `/videos/:id/reprocess` | owner | Re-enqueue a `failed` video |
+| GET | `/videos/:publicId` | public | Ready video metadata (+ presigned thumbnail URL) |
+| GET | `/videos/:publicId/stream` | public | `302` → presigned GET (storage serves Range / `206`) |
+| GET | `/videos/:publicId/download` | public | `302` → presigned GET with `Content-Disposition: attachment` |
+
+**Queue / worker:** producer `queue.add('process', { videoId }, { jobId: videoId })` on the `video-processing` BullMQ queue (idempotent via `jobId`; `attempts: 3`, exponential backoff). The worker downloads the source, runs `ffprobe` (duration/metadata) and `ffmpeg` (thumbnail at ~10% of duration), uploads the thumbnail and sets `status = ready`. On exhausted retries, `@OnWorkerEvent('failed')` sets `status = failed` with `error_reason`.
+
+**New env vars:** `REDIS_HOST`, `REDIS_PORT`, `STORAGE_ENDPOINT`, `STORAGE_REGION`, `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY`, `STORAGE_BUCKET_VIDEOS`, `STORAGE_FORCE_PATH_STYLE`, `UPLOAD_MAX_BYTES`, `UPLOAD_PART_SIZE_BYTES`, `PRESIGN_EXPIRES_SECONDS` (see `src/config/{storage,queue,upload}.config.ts` and the Joi schema).
+
 ## Code Conventions
 
 - **TypeScript:** `nodenext` module resolution, `ES2023` target, `strictNullChecks` on, `noImplicitAny` off
 - **Decorators:** `emitDecoratorMetadata` + `experimentalDecorators` enabled — required for NestJS DI
 - **Prettier:** single quotes, trailing commas everywhere
-- **ESLint:** `no-explicit-any` allowed; `no-floating-promises` and `no-unsafe-argument` are warnings
+- **ESLint:** `no-explicit-any` allowed; `no-floating-promises` and `no-unsafe-argument` are warnings. Test files (`*.spec.ts`, `*.integration-spec.ts`, `*.e2e-spec.ts`, `test/**`, `src/test/**`) relax the type-checked `no-unsafe-*`, `require-await`, `unbound-method` and `no-unsafe-function-type` rules — HTTP/storage responses in tests are inherently `any` (supertest `res.body`, `fetch`).
 
 ## REST Conventions
 

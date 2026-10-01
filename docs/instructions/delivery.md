@@ -57,19 +57,19 @@
 
 | Requisito (capability) | Implementação (SI/arquivo) | Teste | Evidência | Status |
 |------------------------|----------------------------|-------|-----------|--------|
-| Serviço de armazenamento (vídeos e thumbnails) | — | — | — | `pendente` |
-| Serviço de processamento em segundo plano (fila) + worker | — | — | — | `pendente` |
-| Upload de até 10GB sem travar a API | — | — | — | `pendente` |
-| Pré-cadastro automático como rascunho ao iniciar upload | — | — | — | `pendente` |
-| Processamento automático (duração + metadados) | — | — | — | `pendente` |
-| Geração automática de thumbnail (frame do vídeo) | — | — | — | `pendente` |
-| URL única por vídeo, sem conflito | — | — | — | `pendente` |
-| Reprodução via streaming (sem download completo) | — | — | — | `pendente` |
-| Download do vídeo pelo usuário | — | — | — | `pendente` |
-| Ciclo de status (rascunho → processando → pronto/erro) no banco | — | — | — | `pendente` |
-| Migration da tabela de vídeos (entidade ligada ao canal) | — | — | — | `pendente` |
-| Infra no Compose (storage + fila + worker) | `nestjs-project/compose.yaml` | SI-03.1: redis/minio/video-worker | regressão verde | `docker compose ps` | `em-andamento` |
-| Progresso por SI | `docs/phases/phase-03-videos/progress.md` | — | — | `pendente` |
+| Serviço de armazenamento (vídeos e thumbnails) | SI-03.2 `storage/storage.service.ts` | storage.integration 4/4 | `206`/presign/thumbnail | `entregue` |
+| Serviço de processamento em segundo plano (fila) + worker | SI-03.4/03.6 `videos` + `worker/` | service/module + worker 2/2 | demo ao vivo: ready | `entregue` |
+| Upload de até 10GB sem travar a API | SI-03.5 presigned multipart | videos.e2e 8/8 | bytes fora da API | `entregue` |
+| Pré-cadastro automático como rascunho ao iniciar upload | SI-03.5 `initiateUpload` | videos.service.integration 3/3 | status `draft` | `entregue` |
+| Processamento automático (duração + metadados) | SI-03.6 `VideoProcessingService` | worker integration | ffprobe 320×240/2s | `entregue` |
+| Geração automática de thumbnail (frame do vídeo) | SI-03.6 ffmpeg 10% | worker integration | thumbnail no storage | `entregue` |
+| URL única por vídeo, sem conflito | SI-03.3/03.5 `public_id` nanoid | entity + e2e | coluna única | `entregue` |
+| Reprodução via streaming (sem download completo) | SI-03.7 presigned GET range | videos.e2e | `302`→`206` | `entregue` |
+| Download do vídeo pelo usuário | SI-03.7 `Content-Disposition` | videos.e2e | attachment | `entregue` |
+| Ciclo de status (rascunho → processando → pronto/erro) no banco | SI-03.8 máquina de estados | processor/reprocess | transições | `entregue` |
+| Migration da tabela de vídeos (entidade ligada ao canal) | SI-03.3 `CreateVideos` | migrations.integration | FK channels | `entregue` |
+| Infra no Compose (storage + fila + worker) | `nestjs-project/compose.yaml` | redis/minio/video-worker | `docker compose ps` (6 serviços) | `entregue` |
+| Progresso por SI | `docs/phases/phase-03-videos/progress.md` | — | 8/8 completed | `entregue` |
 
 ---
 
@@ -77,11 +77,11 @@
 
 | Requisito | Verificação | Evidência | Status |
 |-----------|-------------|-----------|--------|
-| Suíte relevante + completa verdes | `npm test`, `npm run test:e2e` | saída dos testes | `pendente` |
-| Compilação limpa | `npx tsc --noEmit` (código 0) | saída | `pendente` |
-| Lint | `npm run lint` | saída | `pendente` |
-| `CLAUDE.md` atualizado (seção vídeos, coerente com código) | revisão | diff | `pendente` |
-| Git Flow (feature → dev; sem commit na main) | revisão | `git log` | `pendente` |
+| Suíte relevante + completa verdes | `npm test`, `npm run test:e2e` | 170/170 unit+integração + 60/60 e2e | `entregue` |
+| Compilação limpa | `npx tsc --noEmit` (código 0) | TSC OK | `entregue` |
+| Lint | `npm run lint` | exit 0 (override p/ testes + correções) | `entregue` |
+| `CLAUDE.md` atualizado (seção vídeos, coerente com código) | revisão | seção Videos + serviços + fila/worker | `entregue` |
+| Git Flow (feature → dev; sem commit na main) | revisão | `feature/phase-03-videos`, `main` intocada | `entregue` |
 
 ---
 
