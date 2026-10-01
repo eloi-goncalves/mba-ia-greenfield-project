@@ -136,6 +136,31 @@ export class VideosService {
     await this.videoRepository.remove(video);
   }
 
+  async reprocess(
+    userId: string,
+    videoId: string,
+  ): Promise<{ status: VideoStatus }> {
+    const video = await this.getOwnedVideo(userId, videoId);
+
+    if (video.status !== VideoStatus.FAILED) {
+      throw new InvalidStatusTransitionException();
+    }
+
+    const sourceExists = await this.storageService.headObject(
+      video.source_key,
+    );
+    if (!sourceExists) {
+      throw new VideoNotFoundException();
+    }
+
+    video.status = VideoStatus.PROCESSING;
+    video.error_reason = null;
+    await this.videoRepository.save(video);
+    await this.enqueueProcessing(video.id);
+
+    return { status: video.status };
+  }
+
   async getPublicVideo(publicId: string): Promise<{
     publicId: string;
     title: string;

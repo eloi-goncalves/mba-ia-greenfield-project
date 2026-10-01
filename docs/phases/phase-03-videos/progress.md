@@ -1,7 +1,7 @@
 # phase-03-videos — Progress
 
 **Status:** in_progress
-**SIs:** 7/8 completed
+**SIs:** 8/8 completed
 
 ### SI-03.1 — Dependências, Config Namespaces e Infra no Docker Compose
 - **Status:** completed
@@ -65,6 +65,9 @@
   - Só vídeos `ready` são entregues; não-ready/inexistente → `VIDEO_NOT_FOUND` (404). Bytes nunca passam pela API.
 
 ### SI-03.8 — Ciclo de Status, Tratamento de Falha e Reprocesso
-- **Status:** pending
-- **Tests:** —
-- **Observations:** none
+- **Status:** completed
+- **Tests:** video.processor.spec 3/3 (onFailed só na tentativa final), worker markFailed (integração), reprocess (integração: failed→processing + job; rejeita não-failed). Suíte completa 170/170 + e2e 60/60.
+- **Observations:**
+  - `@OnWorkerEvent('failed')` no `VideoProcessor`: marca `failed` + `error_reason` apenas quando `attemptsMade >= attempts` (retries esgotados). `VideoProcessingService.markFailed`.
+  - `POST /videos/:id/reprocess` (dono): só a partir de `failed`, valida `headObject` do source, limpa `error_reason`, volta a `processing` e re-enfileira.
+  - Ciclo completo `draft → processing → ready | failed → (reprocess) → processing` refletido no banco; exceções mapeadas pelo `DomainExceptionFilter`.

@@ -81,6 +81,18 @@ export class VideoProcessingService {
     }
   }
 
+  async markFailed(videoId: string, reason: string): Promise<void> {
+    const video = await this.videoRepository.findOne({
+      where: { id: videoId },
+    });
+    if (!video) {
+      return;
+    }
+    video.status = VideoStatus.FAILED;
+    video.error_reason = reason.slice(0, 2000);
+    await this.videoRepository.save(video);
+  }
+
   private async downloadSource(
     sourceKey: string,
     destination: string,

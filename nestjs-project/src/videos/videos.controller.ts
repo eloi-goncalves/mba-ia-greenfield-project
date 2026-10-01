@@ -66,6 +66,19 @@ export class VideosController {
     return this.videosService.abortUpload(user.sub, id, dto.uploadId);
   }
 
+  @Post(':id/reprocess')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Reprocess a failed video',
+    description: 'Re-enqueues processing for a video in the failed state.',
+  })
+  reprocess(
+    @CurrentUser() user: JwtPayload,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.videosService.reprocess(user.sub, id);
+  }
+
   @Public()
   @Get(':publicId')
   @ApiOperation({

@@ -129,4 +129,14 @@ describe('VideoProcessingService (integration)', () => {
 
     await expect(service.process(video.id)).rejects.toThrow();
   }, 30000);
+
+  it('markFailed sets the video to failed with the error reason', async () => {
+    const video = await createDraftVideo();
+
+    await service.markFailed(video.id, 'ffprobe exploded');
+
+    const updated = await videoRepository.findOneByOrFail({ id: video.id });
+    expect(updated.status).toBe(VideoStatus.FAILED);
+    expect(updated.error_reason).toBe('ffprobe exploded');
+  });
 });

@@ -125,4 +125,45 @@ describe('VideosService (integration)', () => {
     expect(job).toBeDefined();
     expect(job!.data.videoId).toBe(result.videoId);
   });
+
+  it('reprocess re-enqueues a failed video and clears the error', async () => {
+    const userId = await createUserWithChannel();
+    const result = await service.initiateUpload(userId, {
+      ...initiateDto,
+      partCount: 1,
+    });
+    const putRes = await fetch(result.parts[0].url, {
+      method: 'PUT',
+      body: Buffer.from('bytes'),
+    });
+    await service.completeUpload(userId, result.videoId, {
+      uploadId: result.uploadId,
+      parts: [{ partNumber: 1, etag: putRes.headers.get('etag')! }],
+    });
+
+    // Simulate a terminal processing failure.
+    const failed = await videoRepository.findOneByOrFail({
+      id: result.videoId,
+    });
+    failed.status = VideoStatus.FAILED;
+    failed.error_reason = 'boom';
+    await videoRepository.save(failed);
+
+    const out = await service.reprocess(userId, result.videoId);
+
+    expect(out.status).toBe(VideoStatus.PROCESSING);
+    const reloaded = await videoRepository.findOneByOrFail({
+      id: result.videoId,
+    });
+    expect(reloaded.error_reason).toBeNull();
+  });
+
+  it('reprocess rejects a video that is not in the failed state', async () => {
+    const userId = await createUserWithChannel();
+    const result = await service.initiateUpload(userId, initiateDto);
+
+    await expect(
+      service.reprocess(userId, result.videoId),
+    ).rejects.toThrow();
+  });
 });
