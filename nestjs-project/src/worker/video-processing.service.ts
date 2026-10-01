@@ -7,7 +7,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StorageService } from '../storage/storage.service';
-import { Video, VideoStatus, type VideoMetadata } from '../videos/entities/video.entity';
+import {
+  Video,
+  VideoStatus,
+  type VideoMetadata,
+} from '../videos/entities/video.entity';
 
 const execFileAsync = promisify(execFile);
 
@@ -118,12 +122,8 @@ export class VideoProcessingService {
     ]);
 
     const parsed = JSON.parse(stdout) as FfprobeOutput;
-    const videoStream = parsed.streams?.find(
-      (s) => s.codec_type === 'video',
-    );
-    const durationSeconds = Math.round(
-      Number(parsed.format?.duration ?? 0),
-    );
+    const videoStream = parsed.streams?.find((s) => s.codec_type === 'video');
+    const durationSeconds = Math.round(Number(parsed.format?.duration ?? 0));
     const { size } = await stat(sourcePath);
 
     return {

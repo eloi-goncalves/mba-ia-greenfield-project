@@ -9,7 +9,10 @@ import { Channel } from '../channels/entities/channel.entity';
 import queueConfig from '../config/queue.config';
 import storageConfig from '../config/storage.config';
 import uploadConfig from '../config/upload.config';
-import { cleanAllTables, createTestDataSource } from '../test/create-test-data-source';
+import {
+  cleanAllTables,
+  createTestDataSource,
+} from '../test/create-test-data-source';
 import { User } from '../users/entities/user.entity';
 import { Video, VideoStatus } from './entities/video.entity';
 import { VideosModule } from './videos.module';
@@ -162,8 +165,6 @@ describe('VideosService (integration)', () => {
     const userId = await createUserWithChannel();
     const result = await service.initiateUpload(userId, initiateDto);
 
-    await expect(
-      service.reprocess(userId, result.videoId),
-    ).rejects.toThrow();
+    await expect(service.reprocess(userId, result.videoId)).rejects.toThrow();
   });
 });

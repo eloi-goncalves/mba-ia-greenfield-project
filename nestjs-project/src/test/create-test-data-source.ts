@@ -24,9 +24,9 @@ export function createTestDataSource(
 }
 
 export async function cleanAllTables(dataSource: DataSource): Promise<void> {
-  const [{ exists }] = (await dataSource.query(
+  const [{ exists }] = await dataSource.query(
     `SELECT to_regclass('public.videos') IS NOT NULL AS exists`,
-  )) as [{ exists: boolean }];
+  );
   if (exists) {
     await dataSource.query('DELETE FROM "videos"');
   }

@@ -146,9 +146,7 @@ export class VideosService {
       throw new InvalidStatusTransitionException();
     }
 
-    const sourceExists = await this.storageService.headObject(
-      video.source_key,
-    );
+    const sourceExists = await this.storageService.headObject(video.source_key);
     if (!sourceExists) {
       throw new VideoNotFoundException();
     }

@@ -30,10 +30,7 @@ export class VideosController {
     description:
       'Pre-registers the video as a draft and returns presigned part URLs for a direct-to-storage multipart upload.',
   })
-  initiate(
-    @CurrentUser() user: JwtPayload,
-    @Body() dto: InitiateUploadDto,
-  ) {
+  initiate(@CurrentUser() user: JwtPayload, @Body() dto: InitiateUploadDto) {
     return this.videosService.initiateUpload(user.sub, dto);
   }
 
@@ -56,7 +53,8 @@ export class VideosController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'Abort a video upload',
-    description: 'Aborts the in-progress multipart upload and removes the draft.',
+    description:
+      'Aborts the in-progress multipart upload and removes the draft.',
   })
   abort(
     @CurrentUser() user: JwtPayload,
@@ -83,7 +81,8 @@ export class VideosController {
   @Get(':publicId')
   @ApiOperation({
     summary: 'Get public video metadata',
-    description: 'Returns metadata for a ready video, including a presigned thumbnail URL.',
+    description:
+      'Returns metadata for a ready video, including a presigned thumbnail URL.',
   })
   getPublic(@Param('publicId') publicId: string) {
     return this.videosService.getPublicVideo(publicId);

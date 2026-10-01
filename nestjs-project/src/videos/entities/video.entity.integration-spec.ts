@@ -106,7 +106,11 @@ describe('Video entity (integration)', () => {
     const found = await videoRepository.findOneByOrFail({ id: video.id });
     expect(found.size_bytes).toBe(10737418240);
     expect(typeof found.size_bytes).toBe('number');
-    expect(found.metadata).toEqual({ width: 1920, height: 1080, codec: 'h264' });
+    expect(found.metadata).toEqual({
+      width: 1920,
+      height: 1080,
+      codec: 'h264',
+    });
     expect(found.status).toBe(VideoStatus.READY);
   });
 

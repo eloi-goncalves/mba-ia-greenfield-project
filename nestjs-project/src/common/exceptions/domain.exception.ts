@@ -78,4 +78,3 @@ export class UploadNotFoundException extends DomainException {
     super('UPLOAD_NOT_FOUND', 404, 'Multipart upload not found');
   }
 }
-

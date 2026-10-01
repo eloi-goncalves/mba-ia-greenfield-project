@@ -6,10 +6,7 @@ import uploadConfig from '../config/upload.config';
 import { StorageService } from '../storage/storage.service';
 import { Video } from './entities/video.entity';
 import { VideosService } from './videos.service';
-import {
-  VIDEO_PROCESS_JOB,
-  VIDEO_PROCESSING_QUEUE,
-} from './videos.constants';
+import { VIDEO_PROCESS_JOB, VIDEO_PROCESSING_QUEUE } from './videos.constants';
 
 describe('VideosService', () => {
   let service: VideosService;

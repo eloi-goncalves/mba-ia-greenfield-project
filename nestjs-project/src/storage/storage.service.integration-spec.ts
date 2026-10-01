@@ -10,9 +10,7 @@ describe('StorageService (integration)', () => {
 
   beforeAll(async () => {
     const module = await Test.createTestingModule({
-      imports: [
-        ConfigModule.forRoot({ load: [storageConfig, uploadConfig] }),
-      ],
+      imports: [ConfigModule.forRoot({ load: [storageConfig, uploadConfig] })],
       providers: [StorageService],
     }).compile();
 

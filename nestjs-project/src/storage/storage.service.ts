@@ -73,7 +73,10 @@ export class StorageService implements OnModuleInit {
     return `videos/${videoId}/thumbnail.jpg`;
   }
 
-  async createMultipartUpload(key: string, contentType: string): Promise<string> {
+  async createMultipartUpload(
+    key: string,
+    contentType: string,
+  ): Promise<string> {
     const result = await this.client.send(
       new CreateMultipartUploadCommand({
         Bucket: this.bucket,

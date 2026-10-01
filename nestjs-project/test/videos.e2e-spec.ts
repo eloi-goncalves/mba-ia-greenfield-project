@@ -153,7 +153,10 @@ describe('Videos upload (e2e)', () => {
     await request(app.getHttpServer())
       .post(`/videos/${initiate.body.videoId}/complete`)
       .set('Authorization', `Bearer ${otherToken}`)
-      .send({ uploadId: initiate.body.uploadId, parts: [{ partNumber: 1, etag: 'x' }] })
+      .send({
+        uploadId: initiate.body.uploadId,
+        parts: [{ partNumber: 1, etag: 'x' }],
+      })
       .expect(403)
       .expect((res) => {
         expect(res.body.error).toBe('NOT_VIDEO_OWNER');
