@@ -65,6 +65,12 @@ Leia e execute na ordem. Cada meta-plano é autossuficiente, mas **o agente deve
 | 3 | [execution_plan_phase#03-implementacao.md](execution_plan_phase%2303-implementacao.md) | Implementar SI a SI: módulo de vídeos, infra (storage/fila/worker), migration, testes | `implement` → código + `progress.md` |
 | 4 | [execution_plan_phase#04-fechamento.md](execution_plan_phase%2304-fechamento.md) | Garantir Definition of Done, atualizar CLAUDE.md, revisar Critérios de Aceite, Git Flow de merge | Fechamento |
 
+### Auditoria (pós-entrega)
+
+| Documento | Objetivo |
+|-----------|----------|
+| [analyzer.md](analyzer.md) | Prompt do **agente auditor**: analisa a entrega da Fase 03 contra os Critérios de Aceite e a Reprova automática do README, com verificação baseada em evidências; emite veredito (`APROVADO`/`REPROVADO`) e gera `pendencias.md` se houver lacunas. |
+
 ---
 
 ## 4. Rastreabilidade (history.md e delivery.md)
